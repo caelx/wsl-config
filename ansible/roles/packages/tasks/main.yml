@@ -1,10 +1,10 @@
 ---
 - name: Install system packages using pamac
   ansible.builtin.command: >
-    pamac install --no-confirm
+    pamac install --no-confirm --aur
     7zip bat direnv fastfetch fd git git-lfs ldns less lsd neovim
     nfs-utils openssh pkgfile python-pipx ripgrep-all starship
-    unzip wget find-the-command fisher
+    unzip wget find-the-command fisher fish
   changed_when: true
 
 - name: Update pkgfile database

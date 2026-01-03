@@ -1,17 +1,12 @@
 ---
-- name: Install fish shell
-  community.general.pacman:
-    name: fish
-    state: present
-
 - name: Get user information
   ansible.builtin.user:
-    name: "{{ ansible_user_id }}"
+    name: "{{ ansible_facts['user_id'] }}"
   register: fish_user_info
 
 - name: Set fish as default shell
   ansible.builtin.user:
-    name: "{{ ansible_user_id }}"
+    name: "{{ ansible_facts['user_id'] }}"
     shell: /usr/bin/fish
   when: fish_user_info.shell != "/usr/bin/fish"
 
