@@ -1,0 +1,11 @@
+[Unit]
+Description=Auto mount Z: drive
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/mount-z.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

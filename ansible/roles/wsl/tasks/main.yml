@@ -20,3 +20,26 @@
     dest: "{{ ansible_facts['user_dir'] }}/winhome"
     state: link
   when: wsl_win_username_cmd.rc == 0
+
+- name: Copy mount-z script
+  ansible.builtin.copy:
+    src: mount-z.sh
+    dest: /usr/local/bin/mount-z.sh
+    mode: "0755"
+  become: true
+
+- name: Create mount-z systemd service
+  ansible.builtin.copy:
+    src: mount-z.service
+    dest: /etc/systemd/system/mount-z.service
+    mode: "0644"
+  become: true
+  notify: Restart mount-z
+
+- name: Enable and start mount-z service
+  ansible.builtin.systemd:
+    name: mount-z.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true

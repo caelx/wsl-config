@@ -1,0 +1,7 @@
+---
+- name: Restart mount-z
+  ansible.builtin.systemd:
+    name: mount-z.service
+    state: restarted
+    daemon_reload: true
+  become: true
