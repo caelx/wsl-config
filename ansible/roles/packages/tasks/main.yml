@@ -1,12 +1,122 @@
 ---
-- name: Install system packages using pamac
+- name: Check if yay is installed
+  ansible.builtin.command: which yay
+  register: packages_yay_check
+  changed_when: false
+  failed_when: false
+
+- name: Bootstrap yay-bin properly
+  when: packages_yay_check.rc != 0
+  block:
+    - name: Clone yay-bin
+      ansible.builtin.git:
+        repo: https://aur.archlinux.org/yay-bin.git
+        dest: "{{ ansible_facts['user_dir'] }}/yay-bin"
+        version: master
+
+    - name: Build yay-bin package
+      ansible.builtin.command: makepkg -s --noconfirm
+      args:
+        chdir: "{{ ansible_facts['user_dir'] }}/yay-bin"
+      changed_when: true
+
+    - name: Find built yay package
+      ansible.builtin.find:
+        paths: "{{ ansible_facts['user_dir'] }}/yay-bin"
+        patterns: "yay-bin-*.pkg.tar.zst"
+      register: packages_yay_built
+
+    - name: Install yay-bin
+      community.general.pacman:
+        name: "{{ packages_yay_built.files[0].path }}"
+        state: present
+      become: true
+
+    - name: Remove yay-bin build directory
+      ansible.builtin.file:
+        path: "{{ ansible_facts['user_dir'] }}/yay-bin"
+        state: absent
+
+- name: Install standard repository packages
+  community.general.pacman:
+    name:
+      - 7zip
+      - bat
+      - direnv
+      - fastfetch
+      - fd
+      - git
+      - git-lfs
+      - ldns
+      - less
+      - lsd
+      - neovim
+      - nfs-utils
+      - openssh
+      - pkgfile
+      - python-pipx
+      - ripgrep-all
+      - starship
+      - unzip
+      - wget
+      - fish
+      - zoxide
+      - nodejs
+      - npm
+    state: present
+    update_cache: true
+  become: true
+
+- name: Allow passwordless sudo for pacman (temp)
+  ansible.builtin.copy:
+    content: "%wheel ALL=(ALL) NOPASSWD: /usr/bin/pacman, /usr/bin/yay"
+    dest: /etc/sudoers.d/ansible-yay
+    mode: "0440"
+    validate: "visudo -cf %s"
+  become: true
+
+- name: Install pamac-all using yay
+  ansible.builtin.command: yay -S --noconfirm pamac-all
+  changed_when: true
+  become: false
+
+- name: Remove temp sudoers config
+  ansible.builtin.file:
+    path: /etc/sudoers.d/ansible-yay
+    state: absent
+  become: true
+
+- name: Enable AUR in pamac.conf
+  ansible.builtin.lineinfile:
+    path: /etc/pamac.conf
+    regexp: "^#?EnableAUR$"
+    line: "EnableAUR"
+    state: present
+  become: true
+
+- name: Install AUR packages using pamac
   ansible.builtin.command: >
     pamac install --no-confirm --aur
-    7zip bat direnv fastfetch fd git git-lfs ldns less lsd neovim
-    nfs-utils openssh pkgfile python-pipx ripgrep-all starship
-    unzip wget find-the-command fisher fish
+    find-the-command fisher
   changed_when: true
 
 - name: Update pkgfile database
   ansible.builtin.command: pkgfile -u
   changed_when: true
+  become: true
+
+- name: Create system symlinks for neovim
+  ansible.builtin.file:
+    src: /usr/bin/nvim
+    dest: "{{ item }}"
+    state: link
+    force: true
+  loop:
+    - /usr/local/bin/vi
+    - /usr/local/bin/vim
+  become: true
+
+- name: Update pacman files database
+  ansible.builtin.command: pacman -Fy
+  changed_when: true
+  become: true

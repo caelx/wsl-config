@@ -1,0 +1,22 @@
+---
+- name: Enable systemd in WSL
+  community.general.ini_file:
+    path: /etc/wsl.conf
+    section: boot
+    option: systemd
+    value: "true"
+    mode: "0644"
+  become: true
+
+- name: Get Windows Username
+  ansible.builtin.command: cmd.exe /c "echo %USERNAME%"
+  register: wsl_win_username_cmd
+  changed_when: false
+  failed_when: false
+
+- name: Create winhome symlink
+  ansible.builtin.file:
+    src: "/mnt/c/Users/{{ wsl_win_username_cmd.stdout | trim }}"
+    dest: "{{ ansible_facts['user_dir'] }}/winhome"
+    state: link
+  when: wsl_win_username_cmd.rc == 0

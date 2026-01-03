@@ -1,0 +1,14 @@
+[Unit]
+Description=Antigravity Bridge Proxy
+Requires=antigravity-bridge.socket
+After=antigravity-bridge.socket
+
+[Service]
+Type=notify
+# Dynamically grabs the Windows Host IP (Gateway) and proxies traffic to it
+ExecStart=/bin/sh -c 'WIN_IP=$(ip route show | grep default | awk "{print $3}"); /usr/lib/systemd/systemd-socket-proxyd ${WIN_IP}:9222'
+PrivateTmp=yes
+PrivateNetwork=no
+
+[Install]
+WantedBy=multi-user.target

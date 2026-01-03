@@ -10,14 +10,42 @@
     shell: /usr/bin/fish
   when: fish_user_info.shell != "/usr/bin/fish"
 
-- name: Create fish config directory
+- name: Create fish conf.d directory
   ansible.builtin.file:
-    path: "~/.config/fish"
+    path: "{{ ansible_facts['user_dir'] }}/.config/fish/conf.d"
     state: directory
     mode: "0755"
 
-- name: Deploy fish configuration from template
-  ansible.builtin.template:
-    src: config.fish.j2
-    dest: "~/.config/fish/config.fish"
+- name: Deploy fish conf.d configuration
+  ansible.builtin.copy:
+    src: conf.d/
+    dest: "{{ ansible_facts['user_dir'] }}/.config/fish/conf.d/"
     mode: "0644"
+
+- name: Deploy starship configuration
+  ansible.builtin.copy:
+    src: starship.toml
+    dest: "{{ ansible_facts['user_dir'] }}/.config/starship.toml"
+    mode: "0644"
+
+- name: Check installed fish plugins
+  ansible.builtin.command:
+    cmd: "fish -c 'fisher list'"
+  register: fish_installed_plugins
+  changed_when: false
+  failed_when: false
+  # noqa: command-instead-of-module
+
+- name: Install fish plugins using fisher
+  ansible.builtin.command:
+    cmd: "fish -c 'fisher install {{ item }}'"
+  loop:
+    - sijad/gitignore
+    - jorgebucaran/autopair.fish
+    - meaningful-ooo/sponge
+    - nickeb96/puffer-fish
+    - aohorodnyk/fish-autovenv
+    - decors/fish-colored-man
+  when: item not in fish_installed_plugins.stdout_lines
+  changed_when: true
+  # noqa: command-instead-of-module

@@ -1,0 +1,34 @@
+- name: Check if systemd is active
+  ansible.builtin.command: systemctl is-system-running
+  register: bridge_systemd_check
+  changed_when: false
+  failed_when: false
+  # noqa: command-instead-of-module
+
+- name: Ensure bridge config directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['user_dir'] }}/.config/systemd/user"
+    state: directory
+    mode: "0755"
+
+- name: Deploy antigravity-bridge socket
+  ansible.builtin.copy:
+    src: antigravity-bridge.socket
+    dest: "{{ ansible_facts['user_dir'] }}/.config/systemd/user/antigravity-bridge.socket"
+    mode: "0644"
+
+- name: Deploy antigravity-bridge service
+  ansible.builtin.copy:
+    src: antigravity-bridge.service
+    dest: "{{ ansible_facts['user_dir'] }}/.config/systemd/user/antigravity-bridge.service"
+    mode: "0644"
+
+- name: Enable and start antigravity-bridge socket
+  ansible.builtin.systemd_service:
+    name: antigravity-bridge.socket
+    enabled: true
+    state: started
+    scope: user
+    daemon_reload: true
+  # Avoid failure if systemd isn't active yet
+  failed_when: false

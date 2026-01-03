@@ -1,0 +1,9 @@
+[Unit]
+Description=Antigravity Bridge Socket
+
+[Socket]
+ListenStream=127.0.0.1:9222
+FreeBind=true
+
+[Install]
+WantedBy=sockets.target

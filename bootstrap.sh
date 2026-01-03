@@ -7,10 +7,13 @@ set -e
 
 echo "Starting WSL2 Arch Linux Bootstrap..."
 
-# 1. Check if we are running in WSL2
-if [[ ! -f /proc/sys/fs/binfmt_misc/WSLInterop ]]; then
-    echo "WARNING: This script is intended for WSL2. Proceeding anyway..."
+if [[ $EUID -eq 0 ]]; then
+   echo "ERROR: This script must NOT be run as root or with sudo."
+   echo "Ansible will request sudo password when needed."
+   exit 1
 fi
+
+# 1. Check if we are running in WSL2
 
 # 2. Update pacman and install base dependencies
 echo "Updating pacman and installing dependencies (git, python, pipx)..."

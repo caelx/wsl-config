@@ -1,0 +1,48 @@
+- name: Ensure SSH config directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['user_dir'] }}/.config/systemd/user"
+    state: directory
+    mode: "0755"
+
+- name: Deploy ssh-agent user service
+  ansible.builtin.template:
+    src: ssh-agent.service.j2
+    dest: "{{ ansible_facts['user_dir'] }}/.config/systemd/user/ssh-agent.service"
+    mode: "0644"
+
+- name: Enable and start ssh-agent user service
+  ansible.builtin.systemd_service:
+    name: ssh-agent.service
+    enabled: true
+    state: started
+    scope: user
+    daemon_reload: true
+  # We still want to avoid failure if systemd isn't active yet
+  failed_when: false
+
+- name: Ensure ~/.ssh directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['user_dir'] }}/.ssh"
+    state: directory
+    mode: "0700"
+
+- name: Configure SSH client
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_facts['user_dir'] }}/.ssh/config"
+    create: true
+    mode: "0600"
+    block: |
+      Host *
+          User cael
+          IdentityFile ~/.ssh/id_ed25519
+          ControlMaster auto
+          ControlPath "~/.ssh/+%h-%p-%r"
+          ControlPersist 5m
+          ServerAliveInterval 60
+          ServerAliveCountMax 30
+          GSSAPIAuthentication no
+          Compression yes
+          ForwardAgent yes
+          StrictHostKeyChecking accept-new
+          UserKnownHostsFile ~/.ssh/known_hosts
+          AddKeysToAgent yes
