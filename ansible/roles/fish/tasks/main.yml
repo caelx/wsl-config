@@ -1,0 +1,28 @@
+---
+- name: Install fish shell
+  community.general.pacman:
+    name: fish
+    state: present
+
+- name: Get user information
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+  register: fish_user_info
+
+- name: Set fish as default shell
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    shell: /usr/bin/fish
+  when: fish_user_info.shell != "/usr/bin/fish"
+
+- name: Create fish config directory
+  ansible.builtin.file:
+    path: "~/.config/fish"
+    state: directory
+    mode: "0755"
+
+- name: Deploy fish configuration from template
+  ansible.builtin.template:
+    src: config.fish.j2
+    dest: "~/.config/fish/config.fish"
+    mode: "0644"

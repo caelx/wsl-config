@@ -1,0 +1,6 @@
+*.swp
+*.log
+.ansible/
+venv/
+node_modules/
+bin/

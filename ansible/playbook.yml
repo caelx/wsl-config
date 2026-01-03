@@ -1,0 +1,10 @@
+---
+- name: Configure WSL2 Arch Linux Environment
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  roles:
+    - role: pamac
+    - role: packages
+    - role: fish

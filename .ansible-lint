@@ -1,0 +1,6 @@
+# .ansible-lint configuration
+# Documentation: https://ansible.readthedocs.io/projects/lint/configuration/
+
+# Rules to skip
+skip_list:
+  - line-length
