@@ -3,6 +3,7 @@ Description=Auto mount Z: drive
 After=network.target
 
 [Service]
+EnvironmentFile=/etc/default/mount-z
 Type=oneshot
 ExecStart=/usr/local/bin/mount-z.sh
 RemainAfterExit=yes

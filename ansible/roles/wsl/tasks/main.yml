@@ -36,6 +36,14 @@
   become: true
   notify: Restart mount-z
 
+- name: Create mount-z config file
+  ansible.builtin.template:
+    src: mount-z.env.j2
+    dest: /etc/default/mount-z
+    mode: "0600"
+  become: true
+  notify: Restart mount-z
+
 - name: Enable and start mount-z service
   ansible.builtin.systemd:
     name: mount-z.service

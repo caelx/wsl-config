@@ -42,6 +42,7 @@
     name:
       - 7zip
       - bat
+      - cifs-utils
       - direnv
       - fastfetch
       - fd

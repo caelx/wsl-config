@@ -1,0 +1,5 @@
+---
+wsl_mount_z_server: "{{ lookup('env', 'SMB_SERVER') }}"
+wsl_mount_z_share: "{{ lookup('env', 'SMB_SHARE') }}"
+wsl_mount_z_user: "{{ lookup('env', 'SMB_USER') }}"
+wsl_mount_z_password: "{{ lookup('env', 'SMB_PASS') }}"
